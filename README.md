@@ -1,1 +1,1 @@
-# ISEF-Music-AI-Ver.-MIDI-
+# MIDI-Music-Gen-AI

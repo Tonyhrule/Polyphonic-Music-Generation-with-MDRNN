@@ -50,5 +50,8 @@ for root, dirs, files in os.walk(midi_directory):
             fileList.append(os.path.join(root, file))
 
 for i in range(len(fileList)):
-    notes = processMidi(fileList[i])
-    np.save("output/output" + str(i) + ".npy", notes)
+    try:
+        notes = processMidi(fileList[i])
+        np.save("output/output" + str(i) + ".npy", notes)
+    except:
+        print("Error with" + fileList[i])

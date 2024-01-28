@@ -49,6 +49,9 @@ for root, dirs, files in os.walk(midi_directory):
         if file.endswith(".mid"):
             fileList.append(os.path.join(root, file))
 
+if not os.path.exists("output"):
+    os.mkdir("output")
+
 for i in range(len(fileList)):
     try:
         notes = processMidi(fileList[i])

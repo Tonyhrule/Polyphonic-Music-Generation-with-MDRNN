@@ -52,9 +52,14 @@ for root, dirs, files in os.walk(midi_directory):
 if not os.path.exists("output"):
     os.mkdir("output")
 
-for i in range(len(fileList)):
+for file in fileList:
     try:
-        notes = processMidi(fileList[i])
-        np.save("output/output" + str(i) + ".npy", notes)
+        notes = processMidi(file)
+        np.save(
+            "output/"
+            + file.replace("./midis/", "").replace("/", "-").replace(".mid", "")
+            + ".npy",
+            notes,
+        )
     except:
-        print("Error with" + fileList[i])
+        print("Error with" + file)

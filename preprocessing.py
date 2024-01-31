@@ -1,6 +1,11 @@
 import pretty_midi
 import numpy as np
 import os
+import functools
+
+
+def concatNotes(a, b):
+    return a + b.notes
 
 
 def processMidi(midi_file):
@@ -25,14 +30,24 @@ def processMidi(midi_file):
             midi_data.time_to_tick(note.end) - midi_data.time_to_tick(note.start),
         )
 
+    allNotes = list(
+        sorted(
+            map(
+                noteToVector,
+                functools.reduce(concatNotes, midi_data.instruments, []),
+            ),
+            key=lambda x: x[1],
+        )
+    )
+
     return np.concatenate(
         (
-            np.array(list(map(noteToVector, midi_data.instruments[0].notes))),
+            np.array(allNotes),
             np.array(
                 [
                     (
                         0,
-                        midi_data.time_to_tick(midi_data.instruments[0].notes[-1].end),
+                        midi_data.time_to_tick(allNotes[-1][1] + allNotes[-1][2]),
                         0,
                     )
                 ]

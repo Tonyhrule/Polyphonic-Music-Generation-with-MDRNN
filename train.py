@@ -1,75 +1,150 @@
 import torch
-import argparse
 import os
     
-import utils
 from mdrnn import MDRNN, model_params
-import torch.nn as nn
-from torch.utils.data import DataLoader
-from preprocessing import processMidi, noteToVector
+import os
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+import matplotlib.pyplot as plt
+from custom_loss import CustomMidiLoss
+import torch.nn.functional as F
+
+bad_files = []
 
 def save_model():
-    # Save model
-    root_model_path = 'models/latest_model' + '.pt'
-    model_dict = mdrnn_model.state_dict()
-    state_dict = {'model': model_dict, 'optimizer': optimizer.state_dict()}
-    torch.save(state_dict, root_model_path)
+    save_dir = "models"
+
+    # Check if the directory exists, and create it if it doesn't
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+# Save the model state_dict
+    torch.save({'model': mdrnn_model.state_dict()}, os.path.join(save_dir, "model_state_dict.pth"))
+    #Model saved
     print('Saved model')
 
 # CUDA reset
 torch.cuda.empty_cache()
 
 # Hyperparams
-max_epochs = 100
-learning_rate = 1e-4
+max_epochs = 1
+learning_rate = 1e-5
 
 # Setup GPU stuff
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('Using',device)
 
+# Going through each file in output
+import os
+# assign directory
+directory = 'output'
+count = 0
+#for plotting
+train_losses = []
+# iterate over files in
+# that directory
+steps = 1
 
-# Load datasets
-midi_file_path = './Mozart/mozart_-_Turkish_March_in_Bb.mid'
-notes = processMidi(midi_file_path)
-
-dataset_train = notes[:1000]
-dataset_valid = notes[1000:]
-dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True)
-dataloader_valid = DataLoader(dataset_valid, batch_size=1, shuffle=True)
-
-embedding = nn.Embedding(num_embedding = len(notes), embedding_dim = 64)
-
-steps = len(dataset_train)
-params = model_params()
-
-#for next music prediction
-inputs = notes[:-5]
-gold = notes[5:]
-
-#each file is one input
-multi_input = [inputs]
-multi_gold = [inputs]
-
-# Model
+#model
 mdrnn_model = MDRNN(
-    input_size = multi_input.size(), 
-    hidden_size = "placeholder", 
-    output_size = multi_gold.size(), 
-    time_steps = steps, 
-    pitch_steps = steps, 
-    chord_steps = steps, 
-    params = model_params)
+        input_size = 3,
+        hidden_size = 5,  # Placeholder
+        output_size = 3,
+        time_steps = steps,
+        pitch_steps = steps,
+        duration_steps = steps,
+        params = model_params()
+    )
 
-mdrnn_model.to(device)
-optimizer = torch.optim.Adam(mdrnn_model.parameters(), lr=learning_rate)
+#loss
+custom_loss = CustomMidiLoss()
 
-#train
-for epoch in range(max_epochs):
-    x = embedding(multi_input)
-    x, (h, c) = mdrnn_model.forward(x)
-    #loss function
-    loss = nn.CTCLoss(reduction = 'mean')
-    #hyperbolic tan function
-    a = torch.tanh(x)
-    _, preds = a.max(dim = -1)
+for filename in os.listdir(directory):
+    f = os.path.join(directory, filename)
+    # checking if it is a file
+    if os.path.isfile(f):
+        print(f)
 
+    #'output/output146.npy' and 'output/output194.npy' are bad files
+    if f in ['output/output146.npy', 'output/output194.npy', 'output/output984.npy', 'output/output738.npy', 'output/output722.npy', 'output/output622.npy']:
+        continue
+
+    #load datasets
+    content = np.load(f)
+    content = list(map(tuple, content))
+    
+    #print(content) 
+
+    #MIGHT NEED TO CREATE AN EMBEDDING LAYER TO PASS NUMBERS INTO MDRNN
+
+    dataset_train = content
+
+    # For next music prediction
+    inputs = dataset_train[:-1]
+    gold = dataset_train[1:]
+
+    #normalizing data
+    scaler = MinMaxScaler()
+    inputs_normalized = scaler.fit_transform(inputs)
+    gold_normalized = scaler.fit_transform(gold)
+
+    print(inputs_normalized)
+
+    for param in mdrnn_model.parameters():
+        param.requires_grad = True
+
+    mdrnn_model.to(device)
+
+    optimizer = torch.optim.Adam(mdrnn_model.parameters(), lr=learning_rate)
+
+    #train
+    for epoch in range(max_epochs):
+        optimizer.zero_grad() #zeroing gradients
+
+        x = torch.tensor(inputs_normalized, requires_grad=True)
+        output, pitch_out, time_out, duration_out, x, next_pred = mdrnn_model.forward(x)
+
+        print(f'Next prediction: {next_pred}')
+        # Post-processing output
+
+        #processing for computing loss and implementing backpropagation
+        #both output and target need to be in similar format
+        next_pred = torch.tensor(next_pred, dtype=torch.float32, device=device, requires_grad=True)
+        gold = torch.tensor(gold_normalized, dtype=torch.float32, device=device, requires_grad=True)
+
+        #print(output)
+        #print(truncated_output)
+        num_classes_pitch = mdrnn_model.output_layer.out_features
+        #print(f"Number of classes in pitch classification: {num_classes_pitch}")
+        # Loss function (assuming regression task)
+        print(f'next prediction: {next_pred}')
+
+        loss = custom_loss.forward(next_pred, gold[-1])
+        #print(f'This is the loss: {loss}')
+
+        #backpropagation
+          # Zero the gradients to avoid accumulation
+        loss.backward()  # Compute gradients
+
+        torch.nn.utils.clip_grad_norm_(mdrnn_model.parameters(), max_norm=1.0)
+        # Update weights
+        optimizer.step()
+
+        #make sure bad files do not get in the way
+        #if loss.item() < 1:
+        train_losses.append(loss.item())
+        if loss.item() > 1:
+            bad_files.append(f)
+
+        print("Final Loss:", loss.item())
+
+save_model()
+
+
+# Plotting the losses
+plt.plot(train_losses, label='Training Loss')
+plt.xlabel('Epochs * Each File')
+plt.ylabel('Loss')
+plt.title('Training Loss Over Epochs')
+plt.legend()
+plt.show()

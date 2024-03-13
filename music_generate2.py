@@ -20,7 +20,7 @@ mdrnn_model = MDRNN(
 mdrnn_model.load_state_dict(state_dict['model'])
 
 # Load input data
-input_data = np.load('output/output40.npy')
+input_data = np.load('output/output26.npy')
 
 # Normalize input data
 scaler = MinMaxScaler()

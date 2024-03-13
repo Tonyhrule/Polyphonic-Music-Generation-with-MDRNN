@@ -47,7 +47,7 @@ def processMidi(midi_file):
                 [
                     (
                         0,
-                        midi_data.time_to_tick(allNotes[-1][1] + allNotes[-1][2]),
+                        allNotes[-1][1] + allNotes[-1][2],
                         0,
                     )
                 ]

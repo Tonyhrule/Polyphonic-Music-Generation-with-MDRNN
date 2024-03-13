@@ -21,6 +21,7 @@ def postProcess(notes):
 
     midi.write("output.mid")
 
-
+"""
 output_array = np.load("output/bach-aof-can1.npy")
 postProcess(output_array)
+"""

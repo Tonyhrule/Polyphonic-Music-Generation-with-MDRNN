@@ -3,6 +3,9 @@ import numpy as np
 import os
 import functools
 
+# Dataset used: ADL Piano MIDI Dataset
+# Citation: Ferreira, Lucas N et al. "Computer-Generated Music for Tabletop Role-Playing Games."
+# Proceedings of the 16th AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment (AIIDE'20), 2020.
 
 def concatNotes(a, b):
     return a + b.notes

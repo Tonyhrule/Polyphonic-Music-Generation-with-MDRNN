@@ -17,7 +17,7 @@ def postProcess(notes):
             )
         )
 
-        midi.instruments.append(instrument)
+    midi.instruments.append(instrument)
 
     midi.write("output.mid")
 

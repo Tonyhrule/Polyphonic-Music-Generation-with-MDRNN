@@ -154,3 +154,29 @@ For any questions, licensing requests, or further information, you can reach out
 
 ## Acknowledgments
 - Thanks to the contributors of the ADL Piano MIDI Dataset for providing the data necessary for training our models. The dataset was introduced by Lucas N. Ferreira, Levi H.S. Lelis, and Jim Whitehead in their paper "Computer-Generated Music for Tabletop Role-Playing Games," presented at the 16th AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment (AIIDE'20) in 2020. 
+
+## References
+
+- Bittner, R. M., Bosch, J. J., Rubinstein, D., Meseguer-Brocal, G., & Ewert, S. (2022). A lightweight instrument-agnostic model for polyphonic note transcription and multipitch estimation. In ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) (pp. 781-785). IEEE.
+
+- Edirisooriya, S., Dong, H. W., McAuley, J., & Berg-Kirkpatrick, T. (2021). An empirical evaluation of end-to-end polyphonic optical music recognition. arXiv preprint arXiv:2108.01769.
+
+- Ferreira, L., Lelis, L., & Whitehead, J. (2020). Computer-generated music for tabletop role-playing games. In Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment (Vol. 16, No. 1, pp. 59-65).
+
+- Graves, A., Fernández, S., & Schmidhuber, J. (2007). Multi-dimensional recurrent neural networks. In International conference on artificial neural networks (pp. 549-558). Springer Berlin Heidelberg.
+
+- Huang, C.-Z. A., Vaswani, A., Uszkoreit, J., Shazeer, N., Simon, I., Hawthorne, C., Dai, A. M., Hoffman, M. D., Dinculescu, M., & Eck, D. (2018). Music transformer. Retrieved from https://arxiv.org/abs/1809.04281
+
+- Kobs, K., Steininger, M., Zehe, A., Lautenschlager, F., & Hotho, A. (2020). Simloss: Class similarities in cross entropy. In Foundations of Intelligent Systems: 25th International Symposium, ISMIS 2020, Graz, Austria, September 23–25, 2020, Proceedings (pp. 431-439). Springer International Publishing.
+
+- Kumar, H., & Ravindran, B. (2019). Polyphonic music composition with LSTM neural networks and reinforcement learning. arXiv preprint arXiv:1902.01973.
+
+- Li, Y., Liu, H., Jin, Q., Cai, M., & Li, P. (2023). TrOMR: Transformer-Based Polyphonic Optical Music Recognition. In ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) (pp. 1-5). IEEE.
+
+- Open Music Theory. (n.d.). Retrieved from https://openmusictheory.github.io/
+
+- Raj, A. (2023). Understanding retinamask. Retrieved from https://medium.com/mlearning-ai/understanding-retinamask-e6f6feb814e5.
+
+- Magenta. (n.d.). Retrieved from https://magenta.tensorflow.org/research/
+
+- Shatri, E., & Fazekas, G. (2020). Optical music recognition: State of the art and major challenges. arXiv preprint arXiv:2006.07885.

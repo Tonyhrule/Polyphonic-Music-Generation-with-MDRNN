@@ -43,7 +43,7 @@ count = 0
 train_losses = []
 # iterate over files in
 # that directory
-steps = 1
+steps = 10
 
 #model
 mdrnn_model = MDRNN(
@@ -54,8 +54,7 @@ mdrnn_model = MDRNN(
         pitch_steps = steps,
         duration_steps = steps,
         params = model_params()
-    )
-
+)
 #loss
 custom_loss = CustomMidiLoss()
 
@@ -94,14 +93,26 @@ for filename in os.listdir(directory):
         param.requires_grad = True
 
     mdrnn_model.to(device)
-
     optimizer = torch.optim.Adam(mdrnn_model.parameters(), lr=learning_rate)
 
     #train
     for epoch in range(max_epochs):
         optimizer.zero_grad() #zeroing gradients
 
-        x = torch.tensor(inputs_normalized, requires_grad=True)
+        x = torch.tensor(inputs_normalized).to(torch.float32)
+        print(x.size())
+        max_sequence_length = x.size(0)
+
+        # Determine the desired sequence length you want after padding
+        desired_sequence_length = 4992
+        padding_needed = desired_sequence_length - max_sequence_length
+        x = torch.nn.functional.pad(x, (0, 0, 0, padding_needed), value=0)
+        # Check the size of the padded tensor
+        print("Size of padded tensor:", x.size())
+
+        print(x)
+        x = x.view(8, -1, 3)
+  
         output, pitch_out, time_out, duration_out, x, next_pred = mdrnn_model.forward(x)
 
         print(f'Next prediction: {next_pred}')
@@ -112,26 +123,17 @@ for filename in os.listdir(directory):
         next_pred = torch.tensor(next_pred, dtype=torch.float32, device=device, requires_grad=True)
         gold = torch.tensor(gold_normalized, dtype=torch.float32, device=device, requires_grad=True)
 
-        #print(output)
-        #print(truncated_output)
         num_classes_pitch = mdrnn_model.output_layer.out_features
-        #print(f"Number of classes in pitch classification: {num_classes_pitch}")
-        # Loss function (assuming regression task)
-        print(f'next prediction: {next_pred}')
-
+        print(f'gold: {gold}')
         loss = custom_loss.forward(next_pred, gold[-1])
-        #print(f'This is the loss: {loss}')
 
         #backpropagation
-          # Zero the gradients to avoid accumulation
-        loss.backward()  # Compute gradients
-
+        #zero the gradients to avoid accumulation
+        loss.backward()#compute gradients
         torch.nn.utils.clip_grad_norm_(mdrnn_model.parameters(), max_norm=1.0)
-        # Update weights
+        #update weights
         optimizer.step()
 
-        #make sure bad files do not get in the way
-        #if loss.item() < 1:
         train_losses.append(loss.item())
         if loss.item() > 1:
             bad_files.append(f)
